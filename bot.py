@@ -123,7 +123,11 @@ async def gif(ctx):
 
 @client.command(pass_context=True, aliases=['s'])
 async def say(ctx):  
-    sentence = '-'.join( ctx.message.content.split(' ')[1:] )
+    sentence = ' '.join( ctx.message.content.split(' ')[1:] )
+    
+    if len(sentence) == 0:
+        await ctx.send(f"{ctx.message.author.mention}, please specifiy what you want me to say")
+        return
 
     try:
         channel = ctx.message.author.voice.channel
