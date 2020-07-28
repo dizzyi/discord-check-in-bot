@@ -11,6 +11,8 @@ import pyttsx3
 import sqlite3
 #gif
 from tenor import fetch_tenor
+
+import time
 ##################
 load_dotenv()
 
@@ -124,7 +126,7 @@ async def gif(ctx):
 @client.command(pass_context=True, aliases=['s'])
 async def say(ctx):  
     sentence = ' '.join( ctx.message.content.split(' ')[1:] )
-    
+
     if len(sentence) == 0:
         await ctx.send(f"{ctx.message.author.mention}, please specifiy what you want me to say")
         return
@@ -147,7 +149,7 @@ async def say(ctx):
         if output_voice:
             os.remove('temp.mp3')
     except PermissionError:
-        ctx.send('I was saying thing, pls try again')
+        await ctx.send('I was in middle of something, pls try again')
         return
     
     engine.save_to_file(sentence,'temp.mp3')
@@ -158,8 +160,16 @@ async def say(ctx):
     voice.source.volume = VOLUME
 
 @client.command(pass_context=True, aliases=['cm'])
-async def callme(ctx, *, AL):
+async def callme(ctx):
+
+    AL = ' '.join( ctx.message.content.split(' ')[1:] )
+    
+    if len(AL) == 0:
+        await ctx.send(f"{ctx.message.author.mention}, please specifiy what you want me to call you")
+        return
+
     ID = ctx.message.author.id
+    ###############################################################
     conn = sqlite3.connect('check-in.db')
     c = conn.cursor()
     c.execute("SELECT * FROM names WHERE id=?", (ID,) )    
@@ -172,6 +182,7 @@ async def callme(ctx, *, AL):
         c.execute("INSERT INTO names VALUES (?,?)", ( ID, AL, ) )
         conn.commit()
     conn.close()
+    ##############################################################
     await ctx.send(f"I'll call you {AL} from now on")
 
 @client.event
@@ -227,10 +238,9 @@ async def on_voice_state_update(member, before, after):
     engine.save_to_file(output,'temp.mp3')
     engine.runAndWait()
 
-    voice.source = discord.PCMVolumeTransformer(voice.source)
-    voice.source.volume = VOLUME
     voice.play(discord.FFmpegPCMAudio('./temp.mp3'), after= lambda e: print(f"Said {output}"))
-    
+    voice.source = discord.PCMVolumeTransformer(voice.source)
+    voice.source.volume = VOLUME    
         
 
 
